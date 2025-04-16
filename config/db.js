@@ -1,19 +1,24 @@
-const mysql = require('mysql2');
-require('dotenv').config();
+const mysql = require('mysql2/promise'); // Use promise-based mysql2
 
-const db = mysql.createConnection({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME
+const pool = mysql.createPool({
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || 'your_password',
+  database: process.env.DB_NAME || 'gcdl_db',
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
-db.connect((err) => {
-    if (err) {
-        console.error('Database connection failed:', err);
-        return;
-    }
+// Test connection
+(async () => {
+  try {
+    const connection = await pool.getConnection();
     console.log('Connected to MySQL database');
-});
+    connection.release();
+  } catch (err) {
+    console.error('Database connection error:', err);
+  }
+})();
 
-module.exports = db;
+module.exports = pool;
